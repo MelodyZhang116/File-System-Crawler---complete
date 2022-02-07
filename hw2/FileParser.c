@@ -69,24 +69,34 @@ char* ReadFileToString(const char* file_name, int* size) {
   // Use the stat system call to fetch a "struct stat" that describes
   // properties of the file. ("man 2 stat"). You can assume we're on a 64-bit
   // system, with a 64-bit off_t field.
-
+  if (stat(file_name, &file_stat) == -1) {
+    return NULL;
+  }
 
 
   // STEP 2.
   // Make sure this is a "regular file" and not a directory or something else
   // (use the S_ISREG macro described in "man 2 stat").
-
+  if (S_ISREG(file_stat.st_mode) == 0) {
+    return NULL;
+  }
 
 
   // STEP 3.
   // Attempt to open the file for reading (see also "man 2 open").
-
+  fd = open(file_name,O_RDONLY);
+  if (fd == -1) {
+    return NULL;
+  }
 
 
   // STEP 4.
   // Allocate space for the file, plus 1 extra byte to
   // '\0'-terminate the string.
-
+  buf = (char *) malloc(sizeof(char)*(file_stat.st_size+1));
+  if (buf == NULL) {
+      return NULL;
+  }
 
 
   // STEP 5.
@@ -98,7 +108,21 @@ char* ReadFileToString(const char* file_name, int* size) {
   // or a non-recoverable error.  Read the man page for read() carefully, in
   // particular what the return values -1 and 0 imply.
   left_to_read = file_stat.st_size;
+  num_read = 0;
   while (left_to_read > 0) {
+    result = read(fd, buf + num_read, left_to_read);
+    if (result == 0) {
+      left_to_read = 0;
+    } else if (result == -1) {
+      if (errno != EINTR && errno != EAGAIN) {
+        close(fd);
+        free(buf);
+        return NULL;
+      }
+      continue;
+    }
+    num_read += result;
+    left_to_read -= result; 
   }
 
   // Great, we're done!  We hit the end of the file and we read
@@ -200,16 +224,29 @@ static void InsertContent(HashTable* tab, char* content) {
   // AddWordPosition() helper with appropriate arguments, e.g.,
   // AddWordPosition(tab, wordstart, pos);
 
-  while (1) {
-    break;  // you may want to change this
+  while (*cur_ptr != '\0') {
+    if (isalpha(*cur_ptr) != 0) {
+      word_start = cur_ptr;
+      *cur_ptr = tolower(*cur_ptr);
+      while(isalpha(*cur_ptr) != 0){
+        *cur_ptr = tolower(*cur_ptr);
+        cur_ptr++;
+      }
+      *cur_ptr = '\0';
+      AddWordPosition(tab, word_start, word_start - content);
+    }
+    cur_ptr++;
   }  // end while-loop
 }
+// The  Fox  Can't   CATCH the  Chicken.
+// ===++===++===+=+++=====+===++=======+
 
 static void AddWordPosition(HashTable* tab, char* word,
                             DocPositionOffset_t pos) {
   HTKey_t hash_key;
   HTKeyValue_t kv;
   WordPositions *wp;
+  HTKeyValue_t new_kv;
 
   // Hash the string.
   hash_key = FNVHash64((unsigned char*) word, strlen(word));
@@ -233,5 +270,16 @@ static void AddWordPosition(HashTable* tab, char* word,
     // No; this is the first time we've seen this word.  Allocate and prepare
     // a new WordPositions structure, and append the new position to its list
     // using a similar ugly hack as right above.
+    wp = (WordPositions*) malloc(sizeof(WordPositions));
+    Verify333(wp != NULL);
+    char* string = (char*) malloc(strlen(word) +1);
+    Verify333(string != NULL);
+    strncpy(string, word, strlen(word)+1);
+    wp->word = string;
+    wp->positions = LinkedList_Allocate();
+    LinkedList_Append(wp->positions, (LLPayload_t) (int64_t) pos);
+    new_kv.key = hash_key;
+    new_kv.value = wp;
+    HashTable_Insert(tab, new_kv, &kv);
   }
 }
