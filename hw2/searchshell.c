@@ -30,6 +30,9 @@ static void Usage(void);
 
 //////////////////////////////////////////////////////////////////////////////
 // Main
+// you can input a directory name, enter a list of words (no more than 10000)
+// as query, and the program will return a list of files which include all of
+// your queries, ranking by total number of times they show up in that file.
 int main(int argc, char** argv) {
   if (argc != 2) {
     Usage();
@@ -94,7 +97,7 @@ int main(int argc, char** argv) {
   }
   DocTable_Free(table);
   MemIndex_Free(index);
-  LinkedList_Free(result, free);
+  LinkedList_Free(result, &free);
   fprintf(stdout, "shutting down...\n");
   return EXIT_SUCCESS;
 }
