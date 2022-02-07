@@ -8,23 +8,23 @@
 
 namespace cse333 {
 class Vector {
-    public:
-        Vector();
-        Vector(const float x, const float y, const float z);
-        Vector(const Vector& v);
-        ~Vector();
-        Vector& operator=(const Vector& v);
-        Vector& operator+=(const Vector& v);
-        Vector& operator-=(const Vector& v);
-        float operator*(const Vector& v) const;
-        friend Vector operator*(const Vector& v, const float k);
-        friend Vector operator*(const float k, const Vector& v);
-        friend std::ostream& operator<<(std::ostream& s, const Vector& v);
-    private:
-        float* mag_;
+ public:
+  Vector();
+    Vector(const float x, const float y, const float z);
+    Vector(const Vector& v);
+    ~Vector();
+    Vector& operator=(const Vector& v);
+    Vector& operator+=(const Vector& v);
+    Vector& operator-=(const Vector& v);
+    float operator*(const Vector& v) const;
+    friend Vector operator*(const Vector& v, const float k);
+    friend Vector operator*(const float k, const Vector& v);
+    friend std::ostream& operator<<(std::ostream& s, const Vector& v);
+ private:
+    float* mag_;
 };
 Vector operator+(const Vector& a, const Vector& b);
 Vector operator-(const Vector& a, const Vector& b);
 
-}
+}  // namespace cse333
 #endif  // VECTOR_H_

@@ -53,8 +53,9 @@ Vector& Vector::operator-=(const Vector& v) {
     return *this;
 }
 
-float Vector::operator*(const Vector& v) const{
-    float result = (mag_[0] * v.mag_[0] + mag_[1] * v.mag_[1] + mag_[2] * v.mag_[2]);
+float Vector::operator*(const Vector& v) const {
+    float result = (mag_[0] * v.mag_[0] + mag_[1] *
+                    v.mag_[1] + mag_[2] * v.mag_[2]);
     return result;
 }
 
@@ -82,5 +83,4 @@ std::ostream& operator<<(std::ostream& s, const Vector& v) {
     s << "(" << v.mag_[0] << "," << v.mag_[1] << "," << v.mag_[2] << ")";
     return s;
 }
-
-}
+}  // namespace cse333

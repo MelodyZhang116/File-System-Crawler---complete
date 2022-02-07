@@ -65,20 +65,22 @@ int main() {
   cout << "dot product: " << dot_product << endl;
   cout << "expectation: " << kX1 * kX2 + kY1 * kY2 + kZ1 * kZ2 << endl;
   cout << endl;
-  
+
   dot_product = v3 * v2;
   cout << "dot product: " << dot_product << endl;
   cout << "expectation: " << kX1 * kX2 + kY1 * kY2 + kZ1 * kZ2 << endl;
   cout << endl;
 
-    
+
   // test vector*float
   float c = k;
   Vector result = v2 * c;
-  VerifyVector(result, kX1 * k, kY1 * k, kZ1 * k, "dot product with vector * float");
+  VerifyVector(result, kX1 * k, kY1 * k, kZ1 * k,
+                "dot product with vector * float");
   // test float*vector
   result = c * v2;
-  VerifyVector(result, kX1 * k, kY1 * k, kZ1 * k, "dot product with float * vector");
+  VerifyVector(result, kX1 * k, kY1 * k, kZ1 * k,
+                "dot product with float * vector");
 
   // test +
   result = v2 + v3;
