@@ -26,6 +26,16 @@
 // factor has become too high.
 static void MaybeResize(HashTable *ht);
 
+// Helper method: find whether the chain contain the key
+// Arguments:
+// - iter: the iterator to use to find the key.
+// - key: the key to be find.
+//
+// Returns:
+//  - false: if the chain not contain the key
+//  - true: if the chain contain the key
+static bool FindKey(LLIterator* iter, HTKey_t key);
+
 int HashKeyToBucketNum(HashTable *ht, HTKey_t key) {
   return key % ht->num_buckets;
 }
@@ -136,8 +146,27 @@ bool HashTable_Insert(HashTable *table,
   // and optionally remove a key within a chain, rather than putting
   // all that logic inside here.  You might also find that your helper
   // can be reused in steps 2 and 3.
-
-  return 0;  // you may need to change this return value
+  HTKeyValue_t* payload_ptr = (HTKeyValue_t*)malloc(sizeof(HTKeyValue_t));
+  *payload_ptr = newkeyvalue;
+  LLIterator* iter = LLIterator_Allocate(chain);
+  bool found = FindKey(iter, newkeyvalue.key);
+  if (found) {
+    // If previously exist key
+    // update old key value
+    LLPayload_t payload;
+    LLIterator_Get(iter, &payload);
+    *oldkeyvalue = *(HTKeyValue_t*)payload;
+    LLIterator_Remove(iter, LLNoOpFree);
+    free(payload);
+    LinkedList_Push(chain, payload_ptr);
+    LLIterator_Free(iter);
+    return true;
+  }
+  // If no exist key
+  LinkedList_Push(chain, payload_ptr);
+  LLIterator_Free(iter);
+  table->num_elements++;
+  return false;
 }
 
 bool HashTable_Find(HashTable *table,
@@ -146,7 +175,21 @@ bool HashTable_Find(HashTable *table,
   Verify333(table != NULL);
 
   // STEP 2: implement HashTable_Find.
+  // Calculate which bucket and chain we're inserting into.
+  int bucket = HashKeyToBucketNum(table, key);
+  LinkedList* chain = table->buckets[bucket];
 
+  LLIterator* iter = LLIterator_Allocate(chain);
+  bool found = FindKey(iter, key);
+  if (found) {
+    // key exist previously
+    LLPayload_t payload;
+    LLIterator_Get(iter, &payload);
+    *keyvalue = *(HTKeyValue_t*)payload;
+    LLIterator_Free(iter);
+    return true;
+  }
+  LLIterator_Free(iter);
   return false;  // you may need to change this return value
 }
 
@@ -156,8 +199,24 @@ bool HashTable_Remove(HashTable *table,
   Verify333(table != NULL);
 
   // STEP 3: implement HashTable_Remove.
+  // Calculate which bucket and chain we're inserting into.
+  int bucket = HashKeyToBucketNum(table, key);
+  LinkedList* chain = table->buckets[bucket];
 
-  return 0;  // you may need to change this return value
+  LLIterator* iter = LLIterator_Allocate(chain);
+  bool found = FindKey(iter, key);
+  if (found) {
+    LLPayload_t payload;
+    LLIterator_Get(iter, &payload);
+    *keyvalue = *(HTKeyValue_t*)payload;
+    free(payload);
+    LLIterator_Remove(iter, LLNoOpFree);
+    LLIterator_Free(iter);
+    table->num_elements--;
+    return true;
+  }
+  LLIterator_Free(iter);
+  return false;
 }
 
 
@@ -209,23 +268,47 @@ bool HTIterator_IsValid(HTIterator *iter) {
   Verify333(iter != NULL);
 
   // STEP 4: implement HTIterator_IsValid.
-
-  return true;  // you may need to change this return value
+  if (iter->ht == NULL || iter->bucket_it == NULL ||
+      !LLIterator_IsValid(iter->bucket_it)) {
+    return false;
+  }
+  return true;
 }
 
 bool HTIterator_Next(HTIterator *iter) {
   Verify333(iter != NULL);
 
   // STEP 5: implement HTIterator_Next.
-
-  return true;  // you may need to change this return value
+  // check whether current list has next element
+  if (!HTIterator_IsValid(iter)) {
+    return false;
+  }
+  if (LLIterator_Next(iter->bucket_it)) {
+    return true;
+  }
+  // iterate following buckets to find next element
+  for (int i = iter->bucket_idx + 1; i < iter->ht->num_buckets; i++) {
+    LLIterator* lliter = LLIterator_Allocate(iter->ht->buckets[i]);
+    LLIterator_Free(iter->bucket_it);
+    iter->bucket_idx = i;
+    iter->bucket_it = lliter;
+    if (LLIterator_IsValid(lliter)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool HTIterator_Get(HTIterator *iter, HTKeyValue_t *keyvalue) {
   Verify333(iter != NULL);
 
   // STEP 6: implement HTIterator_Get.
-
+  if (!HTIterator_IsValid(iter)) {
+    return false;
+  }
+  LLPayload_t payload;
+  LLIterator_Get(iter->bucket_it, &payload);
+  *keyvalue = *(HTKeyValue_t*)payload;
   return true;  // you may need to change this return value
 }
 
@@ -288,4 +371,16 @@ static void MaybeResize(HashTable *ht) {
   // Done!  Clean up our iterator and temporary table.
   HTIterator_Free(it);
   HashTable_Free(newht, &HTNoOpFree);
+}
+
+static bool FindKey(LLIterator* iter, HTKey_t key) {
+  HTKeyValue_t* payload;
+  while (LLIterator_IsValid(iter)) {
+    LLIterator_Get(iter, (LLPayload_t*)&payload);
+    if (key == payload->key) {
+      return true;
+    }
+    LLIterator_Next(iter);
+  }
+  return false;
 }
