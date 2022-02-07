@@ -2,9 +2,8 @@
 
 ## A) How is your program acting differently than you expect it to?
 - 
-
 ## B) Brainstorm a few possible causes of the bug
-- 
+- I guess it might be caused by freeing an unallocated thing
 - 
 - 
 
