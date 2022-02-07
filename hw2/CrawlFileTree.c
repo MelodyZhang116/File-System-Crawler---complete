@@ -142,7 +142,7 @@ static void HandleDir(char* dir_path, DIR* d, DocTable** doc_table,
     // "continue" expression to begin the next iteration of the loop.  What
     // field in the dirent could we use to find out the name of the entry?
     // How do you compare strings in C?
-    if (strcmp(dirent->d_name, ".")==0 || strcmp(dirent->d_name, "..")==0) {
+    if (strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..") == 0) {
       i--;
       dirent = readdir(d);
       continue;
