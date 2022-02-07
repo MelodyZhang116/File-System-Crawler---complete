@@ -11,7 +11,6 @@
 
 // Feature test macro for strtok_r (c.f., Linux Programming Interface p. 63)
 #define _XOPEN_SOURCE 600
-#define SIZE 128
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,9 +26,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Helper function declarations, constants, etc
 static void Usage(void);
-static void ProcessQueries(DocTable* dt, MemIndex* mi);
-static int GetNextLine(FILE* f, char** ret_str);
-static int ParseString(char* string, char* parse[]);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -56,19 +52,50 @@ int main(int argc, char** argv) {
   // Note that you should make sure the fomatting of your
   // searchshell output exactly matches our solution binaries
   // to get full points on this part.
-  DocTable *doc_table;
-  MemIndex *index;
-  int res;
-  printf("Indexing \'%s\'\n", argv[1]);
-  res = CrawlFileTree(argv[1], &doc_table, &index);
-  if (!res) {
+  DocTable* table;
+  MemIndex* index;
+  char input[10000];
+  char* string;
+  char* token;
+  LinkedList* result;
+  SearchResult* payload;
+  char* name;
+  fprintf(stdout, "Indexing \'%s\'\n", argv[1]);
+  if (!CrawlFileTree(argv[1], &table, &index)) {
     Usage();
   }
-  ProcessQueries(doc_table, index);
-  //scanf("%c", &query);
-  printf("exit");
+
+  fprintf(stdout, "enter query:\n");
+  while (fgets(input, 10000, stdin) != NULL) {
+    string = input;
+    char* query[5000];
+    int i = 0;
+    while ((token = strtok_r(string, " ", &string))) {
+      for (int j = 0; j < strlen(token); j++) {
+        *(token+j) = tolower(*(token+j));
+      }
+      query[i] = token;
+      i++;
+    }
+    char* ptr = strchr(query[i - 1], '\n');
+    *ptr = '\0';
+    result = MemIndex_Search(index, query, i);
+    if (result != NULL) {
+      LLIterator* it = LLIterator_Allocate(result);
+      while (LLIterator_IsValid(it)) {
+        LLIterator_Get(it, (void**)&payload);
+        name = DocTable_GetDocName(table, payload->doc_id);
+        fprintf(stdout, "  %s (%i)\n", name, payload->rank);
+        LLIterator_Next(it);
+      }
+      LLIterator_Free(it);
+    }
+    fprintf(stdout, "enter query:\n");
+  }
+  DocTable_Free(table);
   MemIndex_Free(index);
-  DocTable_Free(doc_table);
+  LinkedList_Free(result, free);
+  fprintf(stdout, "shutting down...\n");
   return EXIT_SUCCESS;
 }
 
@@ -82,69 +109,4 @@ static void Usage(void) {
           "where <docroot> is an absolute or relative " \
           "path to a directory to build an index under.\n");
   exit(EXIT_FAILURE);
-}
-
-static void ProcessQueries(DocTable* dt, MemIndex* mi) {
-  char* query;
-  int test;
-  char* parse[SIZE];
-  int length;
-  LinkedList* ll_res;
-  test = GetNextLine(stdin, &query);
-  // query = "my name"; //
-  printf("%s\n", query); //
-  while (test != 0) {
-    length = ParseString(query, parse);
-    ll_res = MemIndex_Search(mi, &query, length);
-    if (ll_res == NULL) {
-      test = GetNextLine(stdin, &query);
-      continue;
-    }
-    printf("%d", LinkedList_NumElements(ll_res));
-    LLIterator* iter = LLIterator_Allocate(ll_res);
-    Verify333(iter != NULL);
-    while (LLIterator_IsValid(iter)) {
-      SearchResult* sr;
-      char* filename;
-      LLIterator_Get(iter, (LLPayload_t *)sr);
-      filename = DocTable_GetDocName(dt, sr->doc_id);
-      printf("%s, %d \n", filename, sr->rank);
-    }
-    LLIterator_Free(iter);
-    LinkedList_Free(ll_res, &free);
-    test--;
-  }
-}
-
-static int GetNextLine(FILE* f, char** ret_str) {
-  char* string = (char*)malloc(sizeof(char) * SIZE);
-  Verify333(string != NULL);
-  printf("enter query: ");
-  char* result = fgets(string, SIZE, f);
-  if (result == NULL) {
-    free(string);
-    return 0;
-  } else {
-    *ret_str = result;
-    return 1;
-  }
-}
-
-static int ParseString(char* string, char* parse[]) {
-  char* token;
-  char* copy = string;
-  char* rest;
-  int len;
-  len = 0;
-  while (1) {
-    token = strtok_r(copy, " ", &rest);
-    if (token == NULL) {
-      break;
-    }
-    parse[len] = token;
-    len++;
-    copy = rest;
-  }
-  parse[len-1][strlen(parse[len-1])-1] = '\0';
-  return len;
 }
