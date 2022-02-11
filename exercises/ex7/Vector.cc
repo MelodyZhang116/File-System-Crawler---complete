@@ -6,9 +6,9 @@
 namespace cse333 {
 Vector::Vector() {
     mag_ = new float[3];
-    mag_[0] = 0;
-    mag_[1] = 0;
-    mag_[2] = 0;
+    mag_[0] = 0.0;
+    mag_[1] = 0.0;
+    mag_[2] = 0.0;
 }
 
 Vector::Vector(const float x, const float y, const float z) {
