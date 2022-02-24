@@ -39,6 +39,7 @@ bool DocIDTableReader::LookupDocID(
   // If the list of elements is empty, we're done.
   if (elements.empty())
     return false;
+  list<DocPositionOffset_t> list;
 
   // Iterate through all of elements, looking for our docID.
   for (IndexFileOffset_t& curr_element : elements) {
@@ -46,6 +47,9 @@ bool DocIDTableReader::LookupDocID(
     // Slurp the next docid out of the current element.
     DocIDElementHeader curr_header;
 
+    Verify333(fseek(file_, curr_element, SEEK_SET) == 0);
+    Verify333(fread(&curr_header, sizeof(DocIDElementHeader), 1, file_) == 1);
+    curr_header.ToHostFormat();
 
     // Is it a match?
     if (curr_header.doc_id == doc_id) {
@@ -54,12 +58,19 @@ bool DocIDTableReader::LookupDocID(
       // std::list<DocPositionOffset_t>.  Be sure to push in the right
       // order, adding to the end of the list as you extract
       // successive positions.
-
+      ElementPositionRecord element_pos;
+      Verify333(fseek(file_, curr_element+sizeof(DocIDElementHeader), SEEK_SET) == 0);
+      for (int i = 0; i < curr_header.num_positions; i++) {
+        Verify333(fread(&element_pos, sizeof(ElementPositionRecord), 1, file_) == 1);
+        element_pos.ToHostFormat();
+        list.push_back(element_pos.position);
+      }
+      
 
       // STEP 3.
       // Return the positions list through the output parameter,
       // and return true.
-
+      *ret_val = list;
       return true;
     }
   }
@@ -80,12 +91,16 @@ list<DocIDElementHeader> DocIDTableReader::GetDocIDList() const {
     // Seek to the next BucketRecord.  The "offset_" member
     // variable stores the offset of this docid table within
     // the index file.
-
+    
+    Verify333(fseek(file_, offset_+sizeof(BucketListHeader) + i*sizeof(BucketRecord), SEEK_SET) == 0);
+    
 
     // STEP 5.
     // Read in the chain length and bucket position fields from
     // the bucket_rec.
     BucketRecord bucket_rec;
+    Verify333(fread(&bucket_rec, sizeof(BucketRecord), 1, file_) == 1);
+    bucket_rec.ToHostFormat();
 
 
     // Sweep through the next bucket, iterating through each
@@ -100,12 +115,16 @@ list<DocIDElementHeader> DocIDTableReader::GetDocIDList() const {
       // Read the next element position from the bucket header.
       // and seek to the element itself.
       ElementPositionRecord element_pos;
-
+      Verify333(fread(&element_pos, sizeof(ElementPositionRecord), 1, file_) == 1);
+      element_pos.ToHostFormat();
+      Verify333(fseek(file_, element_pos.position, SEEK_SET) == 0);
+      
 
       // STEP 7.
       // Read in the docid and number of positions from the element.
       DocIDElementHeader element;
-
+      Verify333(fread(&element, sizeof(DocIDElementHeader), 1, file_) == 1);
+      element.ToHostFormat();
 
       // Append it to our result list.
       doc_id_list.push_back(element);
