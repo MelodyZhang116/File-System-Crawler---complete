@@ -79,7 +79,69 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
   // STEP 1.
   // (the only step in this file)
   vector<QueryProcessor::QueryResult> final_result;
+  
+  for ( int i = 0; i < array_len_; i++){
+    list<IdxQueryResult> temp_result;
+    DocTableReader* dtr = dtr_array_[i];
+    IndexTableReader* itr = itr_array_[i];
+    DocIDTableReader* iidtr = itr->LookupWord(query[0]); // call delete
+    if (iidtr == nullptr) {
+      continue;
+    }
+    //dtr->LookupDocID
+    list<DocIDElementHeader> result = iidtr->GetDocIDList();
+    delete iidtr;
+    list<DocIDElementHeader>::iterator it;
+    for (it = result.begin(); it != result.end(); it++) {
+      //char* filename;
+      //boolean test = dtr->LookupDocID((*it).doc_id, filename);
+      //Verify333(test == true);
+      IdxQueryResult queryResult;
+      queryResult.doc_id = (*it).doc_id;
+      queryResult.rank = (*it).num_positions;
+      temp_result.push_back(queryResult);
+    }
 
+    if (query.size() > 1) {
+      for (int i = 1; i < query.size() ; i++){
+        DocIDTableReader* id_reader = itr->LookupWord(query[i]); // call delete
+        if (iidtr == nullptr) {
+          temp_result.clear();
+          break;
+        }
+        
+        list<IdxQueryResult>::iterator itIdx;
+        for (itIdx = temp_result.begin(); itIdx != temp_result.end(); itIdx ++) {
+          list<DocPositionOffset_t> offset;
+          if (!id_reader->LookupDocID((*itIdx).doc_id, &offset)){
+            if (offset.size() == 0) {
+              temp_result.erase(itIdx);
+              itIdx --;
+            }
+          } else {
+            temp_result.erase(itIdx);
+            itIdx --;
+          }
+          
+        }
+        
+      
+      }
+    }
+    list<IdxQueryResult>::iterator idx;
+    for (idx = temp_result.begin(); idx != temp_result.end(); idx ++) {
+      string filename;
+      bool test = dtr->LookupDocID((*idx).doc_id, *filename);
+      Verify333(test == true);
+      vector<QueryProcessor::QueryResult>::iterator itqr;
+      for (itqr = final_result.begin(); itqr != final_result.end(); itqr ++) {
+        if ((*itqr).document_name == filename){
+          (*itqr).rank += (*idx).rank;
+        }
+      }
+    
+    }
+  }
 
   // Sort the final results.
   sort(final_result.begin(), final_result.end());
