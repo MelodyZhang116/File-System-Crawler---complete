@@ -13,21 +13,21 @@ namespace intlist333 {
 class LinkedIntList: public IntList{
  public:
   // constructor
-  LinkedIntList() : num_elements_(0), head_(nullptr), tail_(nullptr){ }
+  LinkedIntList() : num_elements_(0), head_(nullptr), tail_(nullptr){ };
   // Destructor should be kept default
   // since smart pointers should clean
   // everything up for us
   virtual ~LinkedIntList() = default;
 
-  LinkedIntList(const LinkedIntList& copyme) = delete;
-  virtual LinkedIntList& operator=(const LinkedIntList& rhs) = delete;
+  //LinkedIntList(const LinkedIntList& copyme) = delete;
+  //virtual LinkedIntList& operator=(const LinkedIntList& rhs) = delete;
 
 
-  virtual int num_elements() { return num_elements_; }
-  virtual void Push(const int payload);
-  virtual void Append(const int payload);
-  virtual bool Pop(int* const payload_ptr);
-  virtual bool Slice(int* const payload_ptr);
+  virtual int num_elements() const { return num_elements_; }
+  virtual void Push(const int payload) ;
+  virtual void Append(const int payload) ;
+  virtual bool Pop(int* const payload_ptr) ;
+  virtual bool Slice(int* const payload_ptr) ;
 
  private:
   int num_elements_;
