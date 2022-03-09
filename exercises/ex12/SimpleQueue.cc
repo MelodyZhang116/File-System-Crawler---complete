@@ -44,7 +44,8 @@ void SimpleQueue::Enqueue(const string& item) {
 
 bool SimpleQueue::Dequeue(string* const result) {
   pthread_mutex_lock(&queue_lock_);
-  if (this->size_ == 0) {
+  int size = this->size_;
+  if (size == 0) {
     pthread_mutex_unlock(&queue_lock_);
     return false;
   }
