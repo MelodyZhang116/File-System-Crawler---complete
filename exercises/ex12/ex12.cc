@@ -82,7 +82,6 @@ void* consume_cover(void* arg) {
 int main(int argc, char** argv) {
   // Your task: Make the two producers and the single consumer
   // all run concurrently (hint: use pthreads)
-  
   pthread_t thds[3];  // array of thread ids
   pthread_mutex_init(&write_lock, nullptr);
   // create threads to run thread_main()
@@ -97,7 +96,6 @@ int main(int argc, char** argv) {
   if (pthread_create(&thds[1], nullptr, &producer_cover, args2) != 0) {
     std::cerr << "pthread_create failed" << endl;
   }
-    
   if (pthread_create(&thds[2], nullptr, &consume_cover, nullptr) != 0) {
     std::cerr << "pthread_create failed" << endl;
   }

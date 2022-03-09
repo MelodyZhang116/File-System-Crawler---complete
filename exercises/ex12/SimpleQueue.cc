@@ -65,5 +65,8 @@ int SimpleQueue::Size() const {
 }
 
 bool SimpleQueue::IsEmpty() const {
-  return this->size_ == 0;
+  pthread_mutex_lock(&queue_lock_);
+  int num = this->size_;
+  pthread_mutex_unlock(&queue_lock_);
+  return num == 0;
 }
