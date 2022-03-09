@@ -32,12 +32,12 @@ struct thd_arg {
 };
 // Thread safe print that prints the given str on a line
 void thread_safe_print(const string& str) {
-  pthread_mutex_lock(&write_lock);
+  // pthread_mutex_lock(&write_lock);
   // Only one thread can hold the lock at a time, making it safe to
   // use cout. If we didn't lock before using cout, the order of things
   // put into the stream could be mixed up.
   cout << str << endl;
-  pthread_mutex_unlock(&write_lock);
+  // pthread_mutex_unlock(&write_lock);
 }
 
 // Produces kNumSnacks snacks of the given type
@@ -70,11 +70,15 @@ void consumer() {
 }
 void* producer_cover(void* arg) {
   struct thd_arg* a = reinterpret_cast<struct thd_arg*>(arg);
+  pthread_mutex_lock(&write_lock);
   producer(a->name);
+  pthread_mutex_unlock(&write_lock);
   return nullptr;
 }
 void* consume_cover(void* arg) {
+  pthread_mutex_lock(&write_lock);
   consumer();
+  pthread_mutex_unlock(&write_lock);
   return nullptr;
 }
 
@@ -108,7 +112,7 @@ int main(int argc, char** argv) {
     if (pthread_create(&thds[1], nullptr, &producer_cover, args2) != 0) {
       std::cerr << "pthread_create failed" << endl;
     }
-    struct thd_arg* args3 = new struct thd_arg;
+    // struct thd_arg* args3 = new struct thd_arg;
     // args->num = LOOP_NUM;
     if (pthread_create(&thds[2], nullptr, &consume_cover, nullptr) != 0) {
       std::cerr << "pthread_create failed" << endl;
