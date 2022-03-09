@@ -71,6 +71,7 @@ void consumer() {
 void* producer_cover(void* arg) {
   struct thd_arg* a = reinterpret_cast<struct thd_arg*>(arg);
   producer(a->name);
+  delete a;
   return nullptr;
 }
 void* consume_cover(void* arg) {
