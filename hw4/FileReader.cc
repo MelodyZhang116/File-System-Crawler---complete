@@ -45,6 +45,18 @@ bool FileReader::ReadFile(string* const contents) {
   // HttpUtils.h above the MallocDeleter class for details.
 
   // STEP 1:
+  if (!IsPathSafe(basedir_, full_file)) {
+    return false;
+  }
+  int size;
+  char* content_char = ReadFileToString(full_file.c_str(), &size);
+  if (content_char == NULL) {
+    return false;
+  }
+  string s(content_char, size);
+  *contents = s;
+  free(content_char);
+
 
 
   return true;

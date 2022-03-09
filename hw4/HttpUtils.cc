@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <filesystem>
 
 #include <iostream>
 #include <vector>
@@ -37,6 +38,10 @@ using std::map;
 using std::pair;
 using std::string;
 using std::vector;
+using std::cout;
+using std::filesystem::exists;
+using std::filesystem::current_path;
+// using std::filesystem::path;
 
 namespace hw4 {
 
@@ -53,7 +58,47 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
   // path of a file.)
 
   // STEP 1
+  std::filesystem::path file = test_file;
+  if (!exists(file)) {
+    cout<<"enter not exist" << endl;
+    return false;
+  }
+  cout<<"check done" <<endl;
+  string abs_file = std::filesystem::absolute(file).string();
+  std::filesystem::path dir = root_dir;
+  string abs_dir = std::filesystem::absolute(dir).string();
+  cout << "abs file---"<<abs_file<<endl;
+  cout << "abs dir---"<<abs_dir<<endl;
+  cout << "test file "<< test_file<<endl;
+  cout << "root dir "<<root_dir<<endl;
+  if (abs_dir.length() >= abs_file.length()) {
+    cout<<"length mismatch"<<endl;
+    return false;
+  }
+  
+  size_t n = abs_file.find(abs_dir);
+  if (n==0) {
+    cout << "enter 1" <<endl;
+    if (abs_file.at(abs_dir.length()) == '/') {
+          cout << "enter 2" <<endl;
 
+      return true;
+    } else {
+          cout << "enter 3" <<endl;
+
+      return false;
+    }
+  } else {
+        cout << "enter 4" <<endl;
+
+    return false;
+  }
+    
+  
+
+  
+ 
+    
 
   return true;  // You may want to change this.
 }
@@ -69,6 +114,11 @@ string EscapeHtml(const string& from) {
   // looked up online.
 
   // STEP 2
+  replace_all(ret, "&",  "&amp;");
+  replace_all(ret, "\"", "&quot;");
+  replace_all(ret, "\'", "&apos;");
+  replace_all(ret, "<",  "&lt;");
+  replace_all(ret, ">",  "&gt;");
 
 
   return ret;
