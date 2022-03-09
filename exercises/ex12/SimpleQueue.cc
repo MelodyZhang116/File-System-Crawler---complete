@@ -43,10 +43,11 @@ void SimpleQueue::Enqueue(const string& item) {
 }
 
 bool SimpleQueue::Dequeue(string* const result) {
+  pthread_mutex_lock(&queue_lock_);
   if (this->size_ == 0) {
+    pthread_mutex_unlock(&queue_lock_);
     return false;
   }
-  pthread_mutex_lock(&queue_lock_);
   *result = this->front_->item;
   if (this->end_ == this->front_) {
     this->end_ = this->front_ = this->front_->next;
