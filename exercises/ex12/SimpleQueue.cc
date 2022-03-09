@@ -29,9 +29,9 @@ SimpleQueue::~SimpleQueue() {
 
 void SimpleQueue::Enqueue(const string& item) {
   shared_ptr<Node> new_node(new Node());
-  pthread_mutex_lock(&queue_lock_);
   new_node->next.reset();
   new_node->item = item;
+  pthread_mutex_lock(&queue_lock_);
   if (this->end_) {
     this->end_->next = new_node;
   } else  {
