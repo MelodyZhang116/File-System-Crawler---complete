@@ -46,6 +46,7 @@ class SimpleQueue {
   std::shared_ptr<Node> front_;
   std::shared_ptr<Node> end_;
   int size_;
+  mutable pthread_mutex_t queue_lock_;
 };  // class SimpleQueue
 
 #endif  // SIMPLEQUEUE_H_
