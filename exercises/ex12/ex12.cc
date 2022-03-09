@@ -84,7 +84,6 @@ int main(int argc, char** argv) {
   // all run concurrently (hint: use pthreads)
   pthread_t thds[3];  // array of thread ids
   pthread_mutex_init(&write_lock, nullptr);
-  // create threads to run thread_main()
   struct thd_arg* args1 = new struct thd_arg;
   args1->name = "Nian gao";
   if (pthread_create(&thds[0], nullptr, &producer_cover, args1) != 0) {
