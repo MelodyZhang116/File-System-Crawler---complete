@@ -56,43 +56,71 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
   // to just handle the absolute paths for the files (no "." or "..").
   // You may want to see if there is a C function that gets the absolute
   // path of a file.)
-
-  // STEP 1
-  std::filesystem::path file = test_file;
-  if (!exists(file)) {
-    cout<<"enter not exist" << endl;
-    return false;
-  }
-  cout<<"check done" <<endl;
-  string abs_file = std::filesystem::absolute(file).string();
-  std::filesystem::path dir = root_dir;
-  string abs_dir = std::filesystem::absolute(dir).string();
-  cout << "abs file---"<<abs_file<<endl;
-  cout << "abs dir---"<<abs_dir<<endl;
-  cout << "test file "<< test_file<<endl;
-  cout << "root dir "<<root_dir<<endl;
-  if (abs_dir.length() >= abs_file.length()) {
-    cout<<"length mismatch"<<endl;
-    return false;
-  }
+  // root path, test file path
+  // is a real path function (realpath)
+  // check the string length of root and test strlen strcmp slash/
+  // 
   
-  size_t n = abs_file.find(abs_dir);
-  if (n==0) {
-    cout << "enter 1" <<endl;
-    if (abs_file.at(abs_dir.length()) == '/') {
-          cout << "enter 2" <<endl;
+  char file[PATH_MAX], dir[PATH_MAX]; 
+  char *res1 = realpath(root_dir.c_str(), dir);
+  char *res2 = realpath(test_file.c_str(), file);
+  if (!res1 || !res2) {
+    cout<<"enter 1"<<endl;
+    return false;
+  }
+  if (strlen(dir) >= strlen(file)) {
+        cout<<"enter 2"<<endl;
 
-      return true;
-    } else {
-          cout << "enter 3" <<endl;
-
+    return false;
+  }
+  if (strncmp(file, dir, strlen(dir)) != 0) {
+        cout<<"enter 3"<<endl;
+    
+    return false;
+  } else {
+    if (file[strlen(dir)] !='/') {
       return false;
     }
-  } else {
-        cout << "enter 4" <<endl;
-
-    return false;
   }
+  return true;
+
+
+  // STEP 1
+  // std::filesystem::path file = test_file;
+  // if (!exists(file)) {
+  //   cout<<"enter not exist" << endl;
+  //   return false;
+  // }
+  // cout<<"check done" <<endl;
+  // string abs_file = std::filesystem::absolute(file).string();
+  // std::filesystem::path dir = root_dir;
+  // string abs_dir = std::filesystem::absolute(dir).string();
+  // cout << "abs file---"<<abs_file<<endl;
+  // cout << "abs dir---"<<abs_dir<<endl;
+  // cout << "test file "<< test_file<<endl;
+  // cout << "root dir "<<root_dir<<endl;
+  // if (abs_dir.length() >= abs_file.length()) {
+  //   cout<<"length mismatch"<<endl;
+  //   return false;
+  // }
+  
+  // size_t n = abs_file.find(abs_dir);
+  // if (n==0) {
+  //   cout << "enter 1" <<endl;
+  //   if (abs_file.at(abs_dir.length()) == '/') {
+  //         cout << "enter 2" <<endl;
+
+  //     return true;
+  //   } else {
+  //         cout << "enter 3" <<endl;
+
+  //     return false;
+  //   }
+  // } else {
+  //       cout << "enter 4" <<endl;
+
+  //   return false;
+  // }
     
   
 
@@ -100,7 +128,7 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
  
     
 
-  return true;  // You may want to change this.
+  //return true;  // You may want to change this.
 }
 
 string EscapeHtml(const string& from) {
