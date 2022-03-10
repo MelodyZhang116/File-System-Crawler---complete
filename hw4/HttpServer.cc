@@ -134,8 +134,23 @@ static void HttpServer_ThrFn(ThreadPool::Task* t) {
 
   // STEP 1:
   bool done = false;
+  HttpConnection hc(hst->client_fd);
   while (!done) {
-    done = true;  // you may want to change this value
+    //done = true;  // you may want to change this value
+    HttpRequest req;
+    if (!hc.GetNextRequest(&req)) {
+      close(hst->client_fd);
+      done = true;
+    }
+    HttpResponse rep = ProcessRequest(req, hst->basedir, hst->indices);
+    if (!hc.WriteResponse(rep)) {
+      close(hst->client_fd);
+      done = true;
+    }
+    if (req.GetHeaderValue("connection") == "close") {
+      close(hst->client_fd);
+      done = true;
+    }
   }
 }
 
@@ -181,6 +196,39 @@ static HttpResponse ProcessFileRequest(const string& uri,
   string file_name = "";
 
   // STEP 2:
+  URLParser p;
+  p.Parse(uri);   ////// how to convert from uri to url
+  file_name += p.path();
+  // fname = fname.replace(0, 8, "");/////?
+  FileReader reader(base_dir, file_name);
+  string contents;
+  if (reader.ReadFile(&contents)) {
+    ret.AppendToBody(contents);
+    size_t pos = file_name.find('.');
+    string suffix = file_name.substr(pos, file_name.length() - 1);
+
+    if (suffix == ".html" || suffix == ".htm")
+      ret.set_content_type("text/html");
+    else if (suffix == ".jpg" || suffix == ".jpeg")
+      ret.set_content_type("image/jpeg");
+    else if (suffix == ".png")
+      ret.set_content_type("image/png");
+    else if (suffix == ".txt")
+      ret.set_content_type("text/plain");
+    else if (suffix == ".js")
+      ret.set_content_type("text/javascript");
+    else if (suffix == ".css")
+      ret.set_content_type("text/css");            
+    else if (suffix == ".xml")
+      ret.set_content_type("text/xml");
+    else if (suffix == ".gif")
+      ret.set_content_type("image/gif");
+    
+    ret.protocol = "HTTP/1.1";
+    ret.response_code = 200;
+    ret.message = "OK";
+    return ret;
+  }
 
 
   // If you couldn't find the file, return an HTTP 404 error.
@@ -219,6 +267,25 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   //    tags!)
 
   // STEP 3:
+  ret.AppendToBody("<html><head><title>333gle</title></head>\r\n");
+  ret.AppendToBody("<body>\r\n");
+  ret.AppendToBody("<center style=\"font-size:500%;\">\r\n");
+  ret.AppendToBody("<span style=\"position:relative;bottom:-0.33em;");
+  ret.AppendToBody("color:orange;\">3</span>");
+  ret.AppendToBody("<span style=\"color:red;\">3</span>");
+  ret.AppendToBody("<span style=\"color:gold;\">3</span>");
+  ret.AppendToBody("<span style=\"color:blue;\">g</span>");
+  ret.AppendToBody("<span style=\"color:green;\">l</span>");
+  ret.AppendToBody("<span style=\"color:red;\">e</span>\r\n");
+  ret.AppendToBody("</center>\r\n");
+  ret.AppendToBody("<p>\r\n");
+  ret.AppendToBody("<div style=\"height:20px;\"></div>\r\n");
+  ret.AppendToBody("<center>\r\n");
+  ret.AppendToBody("<form action=\"/query\" method=\"get\">\r\n");
+  ret.AppendToBody("<input type=\"text\" size=30 name=\"terms\" />\r\n");
+  ret.AppendToBody("<input type=\"submit\" value=\"Search\" />\r\n");
+  ret.AppendToBody("</form>\r\n");
+  ret.AppendToBody("</center><p>\r\n");
 
   return ret;
 }
