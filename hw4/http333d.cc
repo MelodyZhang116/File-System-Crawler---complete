@@ -28,6 +28,7 @@ using std::cout;
 using std::endl;
 using std::list;
 using std::string;
+using std::stringstream;
 
 // Print out program usage, and exit() with EXIT_FAILURE.
 static void Usage(char* prog_name);
@@ -101,5 +102,28 @@ static void GetPortAndPath(int argc,
   // - You have at least 1 index, and all indices are readable files
 
   // STEP 1:
+  if (argc < 4) {
+    Usage(argv[0]);
+  }  
+  *port = atoi(argv[1]);
+  if (*port < 1024) {
+    cerr << "Port number < 1024 is not reasonable." << endl;
+    Usage(argv[0]);
+  }
+  struct stat s;
+  if( stat(argv[2],&s) == 0 ) {
+    if(!S_ISDIR(s.st_mode)) {
+        // it's not a directory
+      cerr << argv[2] << " is not a directory." << endl;
+      Usage(argv[0]);
+    } else {
+        // it is a directory
+        // check You have at least 1 index, and all indices are readable files
+
+    }
+  } else {
+    cerr << argv[2] << " is not readable." << endl;
+    Usage(argv[0]);
+  }
 }
 

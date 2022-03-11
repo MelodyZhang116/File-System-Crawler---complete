@@ -286,7 +286,44 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   ret.AppendToBody("<input type=\"submit\" value=\"Search\" />\r\n");
   ret.AppendToBody("</form>\r\n");
   ret.AppendToBody("</center><p>\r\n");
+  URLParser parser;
+  parser.Parse(uri);
+  string search = parser.args()["terms"];
+  boost::to_lower(search);
 
+  hw3::QueryProcessor qp(indices, false);
+  std::vector<string> query;
+  boost::split(query, search, boost::is_any_of(" "), boost::token_compress_on);
+  vector<hw3::QueryProcessor::QueryResult> qr = qp.ProcessQuery(query);
+  if (qr.size() == 0) {
+    ret.AppendToBody("<p><br>\r\n");
+    ret.AppendToBody("No results found for <b>");
+    ret.AppendToBody(EscapeHtml(search));////?escape
+    ret.AppendToBody("</b>\r\n");
+    ret.AppendToBody("<p>\r\n");
+    ret.AppendToBody("\r\n");
+  } else {
+    ret.AppendToBody("<p><br>\r\n");
+    int size = qr.size();
+    string size_str = std::to_string(size);
+    ret.AppendToBody(size_str);
+    if (size == 1) {
+      ret.AppendToBody(" result found for <b>");
+    } else {
+      ret.AppendToBody(" results found for <b>");
+    }
+    ret.AppendToBody(EscapeHtml(search));
+    ret.AppendToBody("</b>\r\n");
+    ret.AppendToBody("<p>\r\n\r\n");
+    ret.AppendToBody("<ul>\r\n");
+    for (size_t i = 0; i < qr.size(); i++) {
+        ret.AppendToBody(" <li> <a href=\"");
+        // if (qr[i].document_name.substr(0, 7) != "http://") ///?
+        ret.AppendToBody("/static/" + qr[i].document_name);
+        ret.AppendToBody("\">"+EscapeHTML(qr[i].document_name));
+        ret.AppendToBody("</a>" + " ["+ std::to_string(qr[i].rank) +"]<br>\r\n");
+      }
+  }
   return ret;
 }
 
