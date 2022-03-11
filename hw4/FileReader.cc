@@ -51,6 +51,7 @@ bool FileReader::ReadFile(string* const contents) {
   int size;
   char* content_char = ReadFileToString(full_file.c_str(), &size);
   if (content_char == NULL) {
+    free(content_char);
     return false;
   }
   string s(content_char, size);

@@ -225,7 +225,7 @@ bool ServerSocket::Accept(int* const accepted_fd,
     // a substitute if the dns lookup fails.
     getnameinfo(reinterpret_cast<struct sockaddr*>(&srvr),
                 srvrlen, hname, 1024, nullptr, 0, 0);
-    string hname_str(addrbuf);
+    string hname_str(hname);
     *server_dns_name = hname_str;
   } else {
     // The server is using an IPv6 address.
