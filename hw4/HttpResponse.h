@@ -64,7 +64,7 @@ class HttpResponse {
   std::string GenerateResponseString() const {
     std::stringstream resp;
 
-    resp << protocol_ << " " << response_code_ << " " << message_ << "\r\n";
+    resp << protocol_ << " " << response_code_ << " " << message_ << "me\r\n";
     if (!content_type_.empty()) {
       resp << "Content-type: " << content_type_ << "\r\n";
     }

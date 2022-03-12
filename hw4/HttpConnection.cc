@@ -78,7 +78,7 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
         //string s(buf1);
         buffer_.append(buf1, test);
         //buffer_ += std::string(reinterpret_cast<char*>(buf), test);
-        cout << "buffer -> "<<buffer_<< endl;
+        // cout << "buffer -> "<<buffer_<< endl;
         pos = buffer_.find(kHeaderEnd);
         // cout << "find or not 2"<<pos<< endl;
 

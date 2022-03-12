@@ -238,14 +238,14 @@ bool ServerSocket::Accept(int* const accepted_fd,
     inet_ntop(AF_INET6, &srvr.sin6_addr, addrbuf, INET6_ADDRSTRLEN);
     string addrbuf_string(addrbuf);
     *server_addr = addrbuf_string;
-    cout<< "server add "<< addrbuf_string<< endl;
+    //cout<< "server add "<< addrbuf_string<< endl;
     // Get the server's dns name, or return it's IP address as
     // a substitute if the dns lookup fails.
     getnameinfo(reinterpret_cast<struct sockaddr*>(&srvr),
                 srvrlen, hname, 1024, nullptr, 0, 0);
     string hname_str(hname);
     *server_dns_name = hname_str;
-    cout << "server dns" << hname_str<< endl;
+    // cout << "server dns" << hname_str<< endl;
     //*server_dns_name = addrbuf_string;
     //*server_addr = hname_str;
 

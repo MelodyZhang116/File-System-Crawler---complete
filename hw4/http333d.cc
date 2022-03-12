@@ -113,12 +113,31 @@ static void GetPortAndPath(int argc,
   struct stat s;
   if( stat(argv[2],&s) == 0 ) {
     if(!S_ISDIR(s.st_mode)) {
-        // it's not a directory
+      // it's not a directory
       cerr << argv[2] << " is not a directory." << endl;
       Usage(argv[0]);
     } else {
-        // it is a directory
-        // check You have at least 1 index, and all indices are readable files
+      // it is a directory
+      // check You have at least 1 index, and all indices are readable files
+      *path = string(argv[2]);
+      for (int i = 3; i < argc; i++) {
+        string file(argv[i]);
+        int length = file.length();
+        if (length >= 4) {
+          if(file.substr(length - 4) == ".idx") {
+            if (stat(argv[i], &s) == -1) {
+              cerr << argv[i] << " is not readable." << endl;
+              Usage(argv[0]);
+            }
+
+            if (!S_ISREG(s.st_mode)) {
+              cerr << argv[i] << " is not a regular file." << endl;
+              Usage(argv[0]);
+            }
+            indices->push_back(argv[i]);
+          }
+        }
+      }
 
     }
   } else {

@@ -142,7 +142,7 @@ static void HttpServer_ThrFn(ThreadPool::Task* t) {
       close(hst->client_fd);
       done = true;
     }
-    HttpResponse rep = ProcessRequest(req, hst->basedir, hst->indices);
+    HttpResponse rep = ProcessRequest(req, hst->base_dir, *(hst->indices));
     if (!hc.WriteResponse(rep)) {
       close(hst->client_fd);
       done = true;
@@ -197,13 +197,14 @@ static HttpResponse ProcessFileRequest(const string& uri,
 
   // STEP 2:
   URLParser p;
-  p.Parse(uri);   ////// how to convert from uri to url
+  p.Parse(uri);   
   file_name += p.path();
-  // fname = fname.replace(0, 8, "");/////?
+  file_name = file_name.substr(8);
   FileReader reader(base_dir, file_name);
   string contents;
   if (reader.ReadFile(&contents)) {
     ret.AppendToBody(contents);
+    // std::cout<<"content "<<contents<<endl;
     size_t pos = file_name.find('.');
     string suffix = file_name.substr(pos, file_name.length() - 1);
 
@@ -224,9 +225,9 @@ static HttpResponse ProcessFileRequest(const string& uri,
     else if (suffix == ".gif")
       ret.set_content_type("image/gif");
     
-    ret.protocol = "HTTP/1.1";
-    ret.response_code = 200;
-    ret.message = "OK";
+    ret.set_protocol("HTTP/1.1");
+    ret.set_response_code(200);
+    ret.set_message("OK");
     return ret;
   }
 
@@ -267,25 +268,28 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   //    tags!)
 
   // STEP 3:
-  ret.AppendToBody("<html><head><title>333gle</title></head>\r\n");
-  ret.AppendToBody("<body>\r\n");
-  ret.AppendToBody("<center style=\"font-size:500%;\">\r\n");
-  ret.AppendToBody("<span style=\"position:relative;bottom:-0.33em;");
-  ret.AppendToBody("color:orange;\">3</span>");
-  ret.AppendToBody("<span style=\"color:red;\">3</span>");
-  ret.AppendToBody("<span style=\"color:gold;\">3</span>");
-  ret.AppendToBody("<span style=\"color:blue;\">g</span>");
-  ret.AppendToBody("<span style=\"color:green;\">l</span>");
-  ret.AppendToBody("<span style=\"color:red;\">e</span>\r\n");
-  ret.AppendToBody("</center>\r\n");
-  ret.AppendToBody("<p>\r\n");
-  ret.AppendToBody("<div style=\"height:20px;\"></div>\r\n");
-  ret.AppendToBody("<center>\r\n");
-  ret.AppendToBody("<form action=\"/query\" method=\"get\">\r\n");
-  ret.AppendToBody("<input type=\"text\" size=30 name=\"terms\" />\r\n");
-  ret.AppendToBody("<input type=\"submit\" value=\"Search\" />\r\n");
-  ret.AppendToBody("</form>\r\n");
-  ret.AppendToBody("</center><p>\r\n");
+      ret.AppendToBody(ret.GenerateResponseString());
+
+  ret.AppendToBody(kThreegleStr);
+  // ret.AppendToBody("<html><head><title>333gle</title></head>\r\n");
+  // ret.AppendToBody("<body>\r\n");
+  // ret.AppendToBody("<center style=\"font-size:500%;\">\r\n");
+  // ret.AppendToBody("<span style=\"position:relative;bottom:-0.33em;");
+  // ret.AppendToBody("color:orange;\">3</span>");
+  // ret.AppendToBody("<span style=\"color:red;\">3</span>");
+  // ret.AppendToBody("<span style=\"color:gold;\">3</span>");
+  // ret.AppendToBody("<span style=\"color:blue;\">g</span>");
+  // ret.AppendToBody("<span style=\"color:green;\">l</span>");
+  // ret.AppendToBody("<span style=\"color:red;\">e</span>\r\n");
+  // ret.AppendToBody("</center>\r\n");
+  // ret.AppendToBody("<p>\r\n");
+  // ret.AppendToBody("<div style=\"height:20px;\"></div>\r\n");
+  // ret.AppendToBody("<center>\r\n");
+  // ret.AppendToBody("<form action=\"/query\" method=\"get\">\r\n");
+  // ret.AppendToBody("<input type=\"text\" size=30 name=\"terms\" />\r\n");
+  // ret.AppendToBody("<input type=\"submit\" value=\"Search\" />\r\n");
+  // ret.AppendToBody("</form>\r\n");
+  // ret.AppendToBody("</center><p>\r\n");
   URLParser parser;
   parser.Parse(uri);
   string search = parser.args()["terms"];
@@ -317,12 +321,15 @@ static HttpResponse ProcessQueryRequest(const string& uri,
     ret.AppendToBody("<p>\r\n\r\n");
     ret.AppendToBody("<ul>\r\n");
     for (size_t i = 0; i < qr.size(); i++) {
-        ret.AppendToBody(" <li> <a href=\"");
-        // if (qr[i].document_name.substr(0, 7) != "http://") ///?
-        ret.AppendToBody("/static/" + qr[i].document_name);
-        ret.AppendToBody("\">"+EscapeHTML(qr[i].document_name));
-        ret.AppendToBody("</a>" + " ["+ std::to_string(qr[i].rank) +"]<br>\r\n");
-      }
+      ret.AppendToBody(" <li> <a href=\"");
+      // if (qr[i].document_name.substr(0, 7) != "http://") ///?
+      ret.AppendToBody("/static/" + qr[i].document_name);
+      ret.AppendToBody("\">"+EscapeHtml(qr[i].document_name));
+      ret.AppendToBody("</a> ["+ std::to_string(qr[i].rank) +"]<br>\r\n");
+    }
+    ret.AppendToBody("</ul>\r\n");
+    ret.AppendToBody("</body>\r\n");
+    ret.AppendToBody("</html>\r\n");
   }
   return ret;
 }
