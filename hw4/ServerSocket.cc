@@ -24,6 +24,7 @@ using std::cerr;
 using std::endl;
 using std::string;
 using std::cout;
+using std::to_string;
 extern "C" {
   #include "libhw1/CSE333.h"
 }
@@ -66,7 +67,7 @@ bool ServerSocket::BindAndListen(int ai_family, int* const listen_fd) {
   // pass in to getaddrinfo().  getaddrinfo() returns a list of
   // address structures via the output parameter "result".
   struct addrinfo* result;
-  std::string port = std::to_string(port_);
+  string port = to_string(port_);
   char const *port_char = port.c_str();
 
   int res = getaddrinfo(nullptr, port_char, &hints, &result);
@@ -159,7 +160,6 @@ bool ServerSocket::Accept(int* const accepted_fd,
   struct sockaddr_storage caddr;
   socklen_t caddr_len = sizeof(caddr);
   while (1) {
-    
     client_fd = accept(listen_sock_fd_,
                            reinterpret_cast<struct sockaddr*>(&caddr),
                            &caddr_len);
@@ -173,37 +173,30 @@ bool ServerSocket::Accept(int* const accepted_fd,
     break;
   }
   *accepted_fd = client_fd;
-  struct sockaddr* addr= reinterpret_cast<struct sockaddr*>(&caddr);
+  struct sockaddr* addr = reinterpret_cast<struct sockaddr*>(&caddr);
   socklen_t addrlen = caddr_len;
 
   // client side
   if (addr->sa_family == AF_INET) {
-    // Print out the IPV4 address and port
-
     char astring[INET_ADDRSTRLEN];
     struct sockaddr_in* in4 = reinterpret_cast<struct sockaddr_in*>(addr);
     inet_ntop(AF_INET, &(in4->sin_addr), astring, INET_ADDRSTRLEN);
-    std::string s(astring); 
-    
+    string s(astring);
     *client_addr = s;
     *client_port = htons(in4->sin_port);
 
   } else if (addr->sa_family == AF_INET6) {
-    // Print out the IPV6 address and port
-
     char astring[INET6_ADDRSTRLEN];
     struct sockaddr_in6* in6 = reinterpret_cast<struct sockaddr_in6*>(addr);
     inet_ntop(AF_INET6, &(in6->sin6_addr), astring, INET6_ADDRSTRLEN);
-    string s(astring); 
-    
+    string s(astring);
     *client_addr = s;
     *client_port = htons(in6->sin6_port);
-
   }
   // dns
   char hostname[1024];  // ought to be big enough.
   if (getnameinfo(addr, addrlen, hostname, 1024, nullptr, 0, 0) != 0) {
-    sprintf(hostname, "[reverse DNS failed]");
+    snprintf(hostname, sizeof(hostname), "[reverse DNS failed]");
   }
   string client_dns(hostname);
   *client_dns_name = client_dns;
@@ -238,17 +231,12 @@ bool ServerSocket::Accept(int* const accepted_fd,
     inet_ntop(AF_INET6, &srvr.sin6_addr, addrbuf, INET6_ADDRSTRLEN);
     string addrbuf_string(addrbuf);
     *server_addr = addrbuf_string;
-    //cout<< "server add "<< addrbuf_string<< endl;
     // Get the server's dns name, or return it's IP address as
     // a substitute if the dns lookup fails.
     getnameinfo(reinterpret_cast<struct sockaddr*>(&srvr),
                 srvrlen, hname, 1024, nullptr, 0, 0);
     string hname_str(hname);
     *server_dns_name = hname_str;
-    // cout << "server dns" << hname_str<< endl;
-    //*server_dns_name = addrbuf_string;
-    //*server_addr = hname_str;
-
   }
 
   return true;

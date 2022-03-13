@@ -64,6 +64,7 @@ class HttpResponse {
   std::string GenerateResponseString() const {
     std::stringstream resp;
 
+
     resp << protocol_ << " " << response_code_ << " " << message_ << "\r\n";
     if (!content_type_.empty()) {
       resp << "Content-type: " << content_type_ << "\r\n";
@@ -75,7 +76,7 @@ class HttpResponse {
   }
 
  private:
-  // The HTTP protocol string to pass back in the header.
+  // The HTTP string to pass back in the header.
   std::string protocol_;
 
   // The HTTP response code to pass back in the header.

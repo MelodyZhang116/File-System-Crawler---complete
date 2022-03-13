@@ -39,9 +39,7 @@ using std::pair;
 using std::string;
 using std::vector;
 using std::cout;
-using std::filesystem::exists;
-using std::filesystem::current_path;
-// using std::filesystem::path;
+
 
 namespace hw4 {
 
@@ -60,7 +58,7 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
   // is a real path function (realpath)
   // check the string length of root and test strlen strcmp slash/
   // 
-  
+  // STEP 1:
   char file[PATH_MAX], dir[PATH_MAX]; 
   char *res1 = realpath(root_dir.c_str(), dir);
   char *res2 = realpath(test_file.c_str(), file);
@@ -83,52 +81,6 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
     }
   }
   return true;
-
-
-  // STEP 1
-  // std::filesystem::path file = test_file;
-  // if (!exists(file)) {
-  //   cout<<"enter not exist" << endl;
-  //   return false;
-  // }
-  // cout<<"check done" <<endl;
-  // string abs_file = std::filesystem::absolute(file).string();
-  // std::filesystem::path dir = root_dir;
-  // string abs_dir = std::filesystem::absolute(dir).string();
-  // cout << "abs file---"<<abs_file<<endl;
-  // cout << "abs dir---"<<abs_dir<<endl;
-  // cout << "test file "<< test_file<<endl;
-  // cout << "root dir "<<root_dir<<endl;
-  // if (abs_dir.length() >= abs_file.length()) {
-  //   cout<<"length mismatch"<<endl;
-  //   return false;
-  // }
-  
-  // size_t n = abs_file.find(abs_dir);
-  // if (n==0) {
-  //   cout << "enter 1" <<endl;
-  //   if (abs_file.at(abs_dir.length()) == '/') {
-  //         cout << "enter 2" <<endl;
-
-  //     return true;
-  //   } else {
-  //         cout << "enter 3" <<endl;
-
-  //     return false;
-  //   }
-  // } else {
-  //       cout << "enter 4" <<endl;
-
-  //   return false;
-  // }
-    
-  
-
-  
- 
-    
-
-  //return true;  // You may want to change this.
 }
 
 string EscapeHtml(const string& from) {
@@ -147,8 +99,6 @@ string EscapeHtml(const string& from) {
   replace_all(ret, "\'", "&apos;");
   replace_all(ret, "<",  "&lt;");
   replace_all(ret, ">",  "&gt;");
-
-
   return ret;
 }
 

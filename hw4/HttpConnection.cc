@@ -24,8 +24,6 @@ using std::endl;
 using std::map;
 using std::string;
 using std::vector;
-// using std::string::npos;
-// using std::vector;
 
 
 
@@ -53,57 +51,38 @@ bool HttpConnection::GetNextRequest(HttpRequest* const request) {
   // next time the caller invokes GetNextRequest()!
 
   // STEP 1:
-  //return false;
-  // size_t pos = buffer_.find(kHeaderEnd, 0, kHeaderEndLen);
   size_t pos = buffer_.find(kHeaderEnd);
-
-  // cout << "find or not1 "<<pos<< endl;
-  if (pos == std::string::npos) {
+  if (pos == string::npos) {
     int test;
     unsigned char buf[SIZE];
     while (1) {
-      
       test = WrappedRead(fd_, buf, SIZE);
-      // cout << "test "<<test<< endl;
-
       if (test == -1) {
+        // error occur
         return false;
       } else if (test == 0) {
         break;
       } else {
-        
- 
-        
         char* buf1 = reinterpret_cast<char*>(buf);
-        //string s(buf1);
         buffer_.append(buf1, test);
-        //buffer_ += std::string(reinterpret_cast<char*>(buf), test);
-        // cout << "buffer -> "<<buffer_<< endl;
         pos = buffer_.find(kHeaderEnd);
-        // cout << "find or not 2"<<pos<< endl;
-
-        if (pos != std::string::npos) {  // find \r\n\r\n
+        if (pos != string::npos) {  // find \r\n\r\n
           break;
         }
       }
     }
-    
-    
   }
   pos = buffer_.find(kHeaderEnd);
-    if (pos == std::string::npos) {
-      return false;
-    }
-    string str = buffer_.substr(0, pos+kHeaderEndLen);
-    // cout << "paramter: "<<str<< endl;
-    *request = ParseRequest(str);
-    // cout << "res.uri() "<<request->uri()<< endl;
-    if (request->uri()== "NULL") {
-      return false;
-    }
-    buffer_ = buffer_.substr(pos+kHeaderEndLen);
-    return true;
-  // return false;  // You may want to change this.
+  if (pos == string::npos) {
+    return false;
+  }
+  string str = buffer_.substr(0, pos+kHeaderEndLen);
+  *request = ParseRequest(str);
+  if (request->uri()== "NULL") {
+    return false;
+  }
+  buffer_ = buffer_.substr(pos+kHeaderEndLen);
+  return true;
 }
 
 bool HttpConnection::WriteResponse(const HttpResponse& response) const {
@@ -137,25 +116,22 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
 
   // STEP 2:
   vector<string> lines;
-  boost::split(lines, request, boost::is_any_of("\r\n"), boost::token_compress_on);
+  boost::split(lines, request, boost::is_any_of("\r\n"),
+                boost::token_compress_on);
   for (size_t i = 0; i < lines.size(); i++) {
     boost::trim(lines[i]);
-    // cout << "after trim: "<<lines[i]<< endl;
   }
   // first line
-  vector<std::string> first;
+  vector<string> first;
   boost::split(first, lines[0], boost::is_any_of(" "),
                boost::token_compress_on);
-  // cout << "first line: "<<first[0]<<"   "<<first[1]<<"   "<<first[2]<< endl;
   if (first[0] != "GET") {
     req.set_uri("NULL");
     return req;
   }
   req.set_uri(first[1]);
-  // cout << "uri "<<req.uri()<<endl;
-  // req.uri_ = first[1];
   for (size_t i = 1;i < lines.size() -1; i++) {
-    vector<std::string> line;
+    vector<string> line;
     boost::split(line, lines[i], boost::is_any_of(":"),
                   boost::token_compress_on);
     if (line.size() != 2) {

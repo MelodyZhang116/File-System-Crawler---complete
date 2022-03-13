@@ -32,6 +32,8 @@ using std::map;
 using std::string;
 using std::stringstream;
 using std::unique_ptr;
+using std::vector;
+using std::to_string;
 
 namespace hw4 {
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,12 +144,12 @@ static void HttpServer_ThrFn(ThreadPool::Task* t) {
       close(hst->client_fd);
       done = true;
     }
-    HttpResponse rep = ProcessRequest(req, hst->base_dir, *(hst->indices));
-    if (!hc.WriteResponse(rep)) {
+    if (req.GetHeaderValue("connection") == "close") {
       close(hst->client_fd);
       done = true;
     }
-    if (req.GetHeaderValue("connection") == "close") {
+    HttpResponse rep = ProcessRequest(req, hst->base_dir, *(hst->indices));
+    if (!hc.WriteResponse(rep)) {
       close(hst->client_fd);
       done = true;
     }
@@ -278,20 +280,20 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   boost::to_lower(search);
 
   hw3::QueryProcessor qp(indices, false);
-  std::vector<string> query;
+  vector<string> query;
   boost::split(query, search, boost::is_any_of(" "), boost::token_compress_on);
   vector<hw3::QueryProcessor::QueryResult> qr = qp.ProcessQuery(query);
   if (qr.size() == 0) {
     ret.AppendToBody("<p><br>\r\n");
     ret.AppendToBody("No results found for <b>");
-    ret.AppendToBody(EscapeHtml(search));////?escape
+    ret.AppendToBody(EscapeHtml(search));
     ret.AppendToBody("</b>\r\n");
     ret.AppendToBody("<p>\r\n");
     ret.AppendToBody("\r\n");
   } else {
     ret.AppendToBody("<p><br>\r\n");
     int size = qr.size();
-    string size_str = std::to_string(size);
+    string size_str = to_string(size);
     ret.AppendToBody(size_str);
     if (size == 1) {
       ret.AppendToBody(" result found for <b>");
@@ -309,7 +311,7 @@ static HttpResponse ProcessQueryRequest(const string& uri,
       }
       ret.AppendToBody(qr[i].document_name);
       ret.AppendToBody("\">"+EscapeHtml(qr[i].document_name));
-      ret.AppendToBody("</a> ["+ std::to_string(qr[i].rank) +"]<br>\r\n");
+      ret.AppendToBody("</a> ["+ to_string(qr[i].rank) +"]<br>\r\n");
     }
     ret.AppendToBody("</ul>\r\n");
     ret.AppendToBody("</body>\r\n");
