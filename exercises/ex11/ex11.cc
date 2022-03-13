@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     unsigned char clientbuf[1024];
     int read = WrappedRead(client_fd, clientbuf, 1024);
     while (read != 0) {
-      int res = WrappedWrite(1, clientbuf, read);
+      int res = WrappedWrite(STDOUT_FILENO, clientbuf, read);
       if (res != read) {
         std::cerr << "read and write mismatch" << endl;
         break;
@@ -51,6 +51,7 @@ int main(int argc, char** argv) {
     }
   }
   // Close up shop.
+  // close(STDOUT_FILENO);
   close(listen_fd);
   return EXIT_SUCCESS;
 }

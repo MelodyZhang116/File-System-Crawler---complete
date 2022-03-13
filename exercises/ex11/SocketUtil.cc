@@ -117,8 +117,23 @@ int WrappedWrite(int fd, unsigned char* buf, int writelen) {
     }
     written += wres;
   }
+  // int res, written_so_far = 0;
+
+  // while (written_so_far < writelen) {
+  //   res = write(fd, buf + written_so_far, writelen - written_so_far);
+  //   if (res == -1) {
+  //     if ((errno == EAGAIN) || (errno == EINTR))
+  //       continue;
+  //     break;
+  //   }
+  //   if (res == 0)
+  //     break;
+  //   written_so_far += res;
+  // }
+  // return written_so_far;
+  
 
   // Clean up.
-  close(fd);
+  // close(fd);
   return written;
 }
