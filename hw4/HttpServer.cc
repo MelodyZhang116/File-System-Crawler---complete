@@ -186,7 +186,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
   //      --> for ".jpeg" or ".jpg", set to "image/jpeg"
   //      --> for ".png", set to "image/png"
   //      etc.
-  //    You should support the file types mentioned above,
+  //    You should suppormrt the file types mentioned above,
   //    as well as ".txt", ".js", ".css", ".xml", ".gif",
   //    and any other extensions to get bikeapalooza
   //    to match the solution server.
@@ -204,27 +204,26 @@ static HttpResponse ProcessFileRequest(const string& uri,
   string contents;
   if (reader.ReadFile(&contents)) {
     ret.AppendToBody(contents);
-    // std::cout<<"content "<<contents<<endl;
     size_t pos = file_name.find('.');
     string suffix = file_name.substr(pos, file_name.length() - 1);
 
-    if (suffix == ".html" || suffix == ".htm")
+    if (suffix == ".html" || suffix == ".htm") {
       ret.set_content_type("text/html");
-    else if (suffix == ".jpg" || suffix == ".jpeg")
+    } else if (suffix == ".jpg" || suffix == ".jpeg") {
       ret.set_content_type("image/jpeg");
-    else if (suffix == ".png")
+    } else if (suffix == ".png") {
       ret.set_content_type("image/png");
-    else if (suffix == ".txt")
+    } else if (suffix == ".txt") {
       ret.set_content_type("text/plain");
-    else if (suffix == ".js")
+    } else if (suffix == ".js") {
       ret.set_content_type("text/javascript");
-    else if (suffix == ".css")
+    } else if (suffix == ".css") {
       ret.set_content_type("text/css");            
-    else if (suffix == ".xml")
+    } else if (suffix == ".xml") {
       ret.set_content_type("text/xml");
-    else if (suffix == ".gif")
+    } else if (suffix == ".gif") {
       ret.set_content_type("image/gif");
-    
+    }
     ret.set_protocol("HTTP/1.1");
     ret.set_response_code(200);
     ret.set_message("OK");
@@ -268,8 +267,9 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   //    tags!)
 
   // STEP 3:
-      ret.AppendToBody(ret.GenerateResponseString());
-
+  ret.set_protocol("HTTP/1.1");
+  ret.set_response_code(200);
+  ret.set_message("OK");
   ret.AppendToBody(kThreegleStr);
   // ret.AppendToBody("<html><head><title>333gle</title></head>\r\n");
   // ret.AppendToBody("<body>\r\n");
