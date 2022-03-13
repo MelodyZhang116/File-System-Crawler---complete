@@ -271,25 +271,7 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   ret.set_response_code(200);
   ret.set_message("OK");
   ret.AppendToBody(kThreegleStr);
-  // ret.AppendToBody("<html><head><title>333gle</title></head>\r\n");
-  // ret.AppendToBody("<body>\r\n");
-  // ret.AppendToBody("<center style=\"font-size:500%;\">\r\n");
-  // ret.AppendToBody("<span style=\"position:relative;bottom:-0.33em;");
-  // ret.AppendToBody("color:orange;\">3</span>");
-  // ret.AppendToBody("<span style=\"color:red;\">3</span>");
-  // ret.AppendToBody("<span style=\"color:gold;\">3</span>");
-  // ret.AppendToBody("<span style=\"color:blue;\">g</span>");
-  // ret.AppendToBody("<span style=\"color:green;\">l</span>");
-  // ret.AppendToBody("<span style=\"color:red;\">e</span>\r\n");
-  // ret.AppendToBody("</center>\r\n");
-  // ret.AppendToBody("<p>\r\n");
-  // ret.AppendToBody("<div style=\"height:20px;\"></div>\r\n");
-  // ret.AppendToBody("<center>\r\n");
-  // ret.AppendToBody("<form action=\"/query\" method=\"get\">\r\n");
-  // ret.AppendToBody("<input type=\"text\" size=30 name=\"terms\" />\r\n");
-  // ret.AppendToBody("<input type=\"submit\" value=\"Search\" />\r\n");
-  // ret.AppendToBody("</form>\r\n");
-  // ret.AppendToBody("</center><p>\r\n");
+  
   URLParser parser;
   parser.Parse(uri);
   string search = parser.args()["terms"];
@@ -322,8 +304,10 @@ static HttpResponse ProcessQueryRequest(const string& uri,
     ret.AppendToBody("<ul>\r\n");
     for (size_t i = 0; i < qr.size(); i++) {
       ret.AppendToBody(" <li> <a href=\"");
-      // if (qr[i].document_name.substr(0, 7) != "http://") ///?
-      ret.AppendToBody("/static/" + qr[i].document_name);
+      if (qr[i].document_name.substr(0, 7) != "http://") {
+        ret.AppendToBody("/static/");
+      }
+      ret.AppendToBody(qr[i].document_name);
       ret.AppendToBody("\">"+EscapeHtml(qr[i].document_name));
       ret.AppendToBody("</a> ["+ std::to_string(qr[i].rank) +"]<br>\r\n");
     }
