@@ -97,7 +97,6 @@ bool HttpConnection::WriteResponse(const HttpResponse& response) const {
 
 HttpRequest HttpConnection::ParseRequest(const string& request) const {
   HttpRequest req("/");  // by default, get "/".
-  //return req;
   // Plan for STEP 2:
   // 1. Split the request into different lines (split on "\r\n").
   // 2. Extract the URI from the first line and store it in req.URI.
@@ -130,7 +129,7 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
     return req;
   }
   req.set_uri(first[1]);
-  for (size_t i = 1;i < lines.size() -1; i++) {
+  for (size_t i = 1; i < lines.size() -1; i++) {
     vector<string> line;
     boost::split(line, lines[i], boost::is_any_of(":"),
                   boost::token_compress_on);
@@ -143,7 +142,7 @@ HttpRequest HttpConnection::ParseRequest(const string& request) const {
       req.AddHeader(line[0], line[1]);
     }
   }
-   return req;
+  return req;
 }
 
 }  // namespace hw4

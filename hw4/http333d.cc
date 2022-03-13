@@ -104,15 +104,15 @@ static void GetPortAndPath(int argc,
   // STEP 1:
   if (argc < 4) {
     Usage(argv[0]);
-  }  
+  }
   *port = atoi(argv[1]);
   if (*port < 1024) {
     cerr << "Port number < 1024 is not reasonable." << endl;
     Usage(argv[0]);
   }
   struct stat s;
-  if( stat(argv[2],&s) == 0 ) {
-    if(!S_ISDIR(s.st_mode)) {
+  if ( stat(argv[2], &s) == 0 ) {
+    if (!S_ISDIR(s.st_mode)) {
       // it's not a directory
       cerr << argv[2] << " is not a directory." << endl;
       Usage(argv[0]);
@@ -124,7 +124,7 @@ static void GetPortAndPath(int argc,
         string file(argv[i]);
         int length = file.length();
         if (length >= 4) {
-          if(file.substr(length - 4) == ".idx") {
+          if (file.substr(length - 4) == ".idx") {
             if (stat(argv[i], &s) == -1) {
               cerr << argv[i] << " is not readable." << endl;
               Usage(argv[0]);
@@ -138,7 +138,6 @@ static void GetPortAndPath(int argc,
           }
         }
       }
-
     }
   } else {
     cerr << argv[2] << " is not readable." << endl;

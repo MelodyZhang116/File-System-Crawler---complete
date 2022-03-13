@@ -138,7 +138,6 @@ static void HttpServer_ThrFn(ThreadPool::Task* t) {
   bool done = false;
   HttpConnection hc(hst->client_fd);
   while (!done) {
-    //done = true;  // you may want to change this value
     HttpRequest req;
     if (!hc.GetNextRequest(&req)) {
       close(hst->client_fd);
@@ -199,7 +198,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
 
   // STEP 2:
   URLParser p;
-  p.Parse(uri);   
+  p.Parse(uri);
   file_name += p.path();
   file_name = file_name.substr(8);
   FileReader reader(base_dir, file_name);
@@ -220,7 +219,7 @@ static HttpResponse ProcessFileRequest(const string& uri,
     } else if (suffix == ".js") {
       ret.set_content_type("text/javascript");
     } else if (suffix == ".css") {
-      ret.set_content_type("text/css");            
+      ret.set_content_type("text/css");
     } else if (suffix == ".xml") {
       ret.set_content_type("text/xml");
     } else if (suffix == ".gif") {
@@ -273,7 +272,6 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   ret.set_response_code(200);
   ret.set_message("OK");
   ret.AppendToBody(kThreegleStr);
-  
   URLParser parser;
   parser.Parse(uri);
   string search = parser.args()["terms"];

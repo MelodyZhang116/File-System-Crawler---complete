@@ -57,23 +57,18 @@ bool IsPathSafe(const string& root_dir, const string& test_file) {
   // root path, test file path
   // is a real path function (realpath)
   // check the string length of root and test strlen strcmp slash/
-  // 
+  //
   // STEP 1:
-  char file[PATH_MAX], dir[PATH_MAX]; 
+  char file[PATH_MAX], dir[PATH_MAX];
   char *res1 = realpath(root_dir.c_str(), dir);
   char *res2 = realpath(test_file.c_str(), file);
   if (!res1 || !res2) {
-    cout<<"enter 1"<<endl;
     return false;
   }
   if (strlen(dir) >= strlen(file)) {
-        cout<<"enter 2"<<endl;
-
     return false;
   }
   if (strncmp(file, dir, strlen(dir)) != 0) {
-        cout<<"enter 3"<<endl;
-    
     return false;
   } else {
     if (file[strlen(dir)] !='/') {
