@@ -282,12 +282,14 @@ static HttpResponse ProcessQueryRequest(const string& uri,
   boost::split(query, search, boost::is_any_of(" "), boost::token_compress_on);
   vector<hw3::QueryProcessor::QueryResult> qr = qp.ProcessQuery(query);
   if (qr.size() == 0) {
+    if (search.length() != 0) {
     ret.AppendToBody("<p><br>\r\n");
     ret.AppendToBody("No results found for <b>");
     ret.AppendToBody(EscapeHtml(search));
     ret.AppendToBody("</b>\r\n");
     ret.AppendToBody("<p>\r\n");
     ret.AppendToBody("\r\n");
+    }
   } else {
     ret.AppendToBody("<p><br>\r\n");
     int size = qr.size();
