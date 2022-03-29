@@ -79,67 +79,56 @@ QueryProcessor::ProcessQuery(const vector<string>& query) const {
   // STEP 1.
   // (the only step in this file)
   vector<QueryProcessor::QueryResult> final_result;
-  
-  for ( int i = 0; i < array_len_; i++){
-    list<IdxQueryResult> temp_result;
-    DocTableReader* dtr = dtr_array_[i];
-    IndexTableReader* itr = itr_array_[i];
-    DocIDTableReader* iidtr = itr->LookupWord(query[0]); // call delete
-    if (iidtr == nullptr) {
+  int length = query.size();
+  // traverse each index file
+  for (int i = 0; i < array_len_; i++) {
+    // process the first word in the index file
+    DocIDTableReader* docID_reader = itr_array_[i]->LookupWord(query[0]);
+    // if the word is not found in the index file, search next index file
+    if (docID_reader == nullptr) {
       continue;
     }
-    //dtr->LookupDocID
-    list<DocIDElementHeader> result = iidtr->GetDocIDList();
-    delete iidtr;
-    list<DocIDElementHeader>::iterator it;
-    for (it = result.begin(); it != result.end(); it++) {
-      //char* filename;
-      //boolean test = dtr->LookupDocID((*it).doc_id, filename);
-      //Verify333(test == true);
-      IdxQueryResult queryResult;
-      queryResult.doc_id = (*it).doc_id;
-      queryResult.rank = (*it).num_positions;
-      temp_result.push_back(queryResult);
+    // found the word in the index file, default (query[0]) list
+    list<DocIDElementHeader> docID_elements = docID_reader->GetDocIDList();
+    delete docID_reader;
+    // process the rest of the word
+    for (int j = 1; j < length; j++) {
+      DocIDTableReader* docID_reader = itr_array_[i]->LookupWord(query[j]);
+      // the word not found, search next index file
+      if (docID_reader == nullptr) {
+        docID_elements.clear();
+        break;
+      }
+      list<DocIDElementHeader> new_list = docID_reader->GetDocIDList();
+      delete docID_reader;
+      // filter the list
+      list<DocIDElementHeader>::iterator it;
+      list<DocIDElementHeader>::iterator new_it;
+      // iterate the default list, check if any doc_id match
+      for (it = docID_elements.begin(); it != docID_elements.end(); it++) {
+        for (new_it = new_list.begin(); new_it != new_list.end(); new_it++) {
+          // doc_id match, update rank, search next default element
+          if ((*new_it).doc_id == (*it).doc_id) {
+            (*it).num_positions += (*new_it).num_positions;
+            break;
+          }
+        }
+        // no doc_id match, erase the element from the original list
+        if (new_it == new_list.end()) {
+          it = docID_elements.erase(it);
+          it--;
+        }
+      }
     }
 
-    if (query.size() > 1) {
-      for (int i = 1; i < query.size() ; i++){
-        DocIDTableReader* id_reader = itr->LookupWord(query[i]); // call delete
-        if (iidtr == nullptr) {
-          temp_result.clear();
-          break;
-        }
-        
-        list<IdxQueryResult>::iterator itIdx;
-        for (itIdx = temp_result.begin(); itIdx != temp_result.end(); itIdx ++) {
-          list<DocPositionOffset_t> offset;
-          if (!id_reader->LookupDocID((*itIdx).doc_id, &offset)){
-            if (offset.size() == 0) {
-              temp_result.erase(itIdx);
-              itIdx --;
-            }
-          } else {
-            temp_result.erase(itIdx);
-            itIdx --;
-          }
-          
-        }
-        
-      
-      }
-    }
-    list<IdxQueryResult>::iterator idx;
-    for (idx = temp_result.begin(); idx != temp_result.end(); idx ++) {
-      string filename;
-      bool test = dtr->LookupDocID((*idx).doc_id, *filename);
-      Verify333(test == true);
-      vector<QueryProcessor::QueryResult>::iterator itqr;
-      for (itqr = final_result.begin(); itqr != final_result.end(); itqr ++) {
-        if ((*itqr).document_name == filename){
-          (*itqr).rank += (*idx).rank;
-        }
-      }
-    
+    // append current index file result
+    for (DocIDElementHeader header : docID_elements) {
+      QueryResult result;
+      string file_name;
+      dtr_array_[i]->LookupDocID(header.doc_id, &file_name);
+      result.document_name = file_name;
+      result.rank = header.num_positions;
+      final_result.push_back(result);
     }
   }
 
